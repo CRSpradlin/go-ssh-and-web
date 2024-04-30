@@ -1,12 +1,9 @@
 package main
 
-// An example Bubble Tea server. This will put an ssh session into alt screen
-// and continually print up to date terminal information.
-
 import (
 	"context"
 	"errors"
-	"fmt"
+	//	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -60,53 +57,50 @@ func main() {
 	}
 }
 
-// You can wire any Bubble Tea model up to the middleware with a function that
-// handles the incoming ssh.Session. Here we just grab the terminal info and
-// pass it to the new model. You can also return tea.ProgramOptions (such as
-// tea.WithAltScreen) on a session by session basis.
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	// This should never fail, as we are using the activeterm middleware.
 	pty, _, _ := s.Pty()
 
-	// When running a Bubble Tea app over SSH, you shouldn't use the default
-	// lipgloss.NewStyle function.
-	// That function will use the color profile from the os.Stdin, which is the
-	// server, not the client.
-	// We provide a MakeRenderer function in the bubbletea middleware package,
-	// so you can easily get the correct renderer for the current session, and
-	// use it to create the styles.
-	// The recommended way to use these styles is to then pass them down to
-	// your Bubble Tea model.
 	renderer := bubbletea.MakeRenderer(s)
-	txtStyle := renderer.NewStyle().
-		Foreground(lipgloss.Color("10")).
-		Background(lipgloss.Color("22"))
-	quitStyle := renderer.NewStyle().Foreground(lipgloss.Color("8"))
 
-	m := model{
-		term:      pty.Term,
-		width:     pty.Window.Width,
-		height:    pty.Window.Height,
-		txtStyle:  txtStyle,
-		quitStyle: quitStyle,
+	baseStyle := renderer.NewStyle().Background(lipgloss.Color("#4c4c4c"))
+
+	txtStyle := renderer.NewStyle().
+		Foreground(lipgloss.Color("#22c55e")).
+		Inherit(baseStyle)
+
+	titleStyle := renderer.NewStyle().
+		BorderBottom(true).
+		BorderStyle(lipgloss.DoubleBorder()).
+		BorderForeground(lipgloss.Color("#22c55e")).
+		BorderBackground(lipgloss.Color("#4c4c4c")).
+		Foreground(lipgloss.Color("#22c55e")).
+		Margin(1).
+		MarginBackground(lipgloss.Color("#4c4c4c")).
+		Inherit(baseStyle)
+
+	m := State{
+		term:       pty.Term,
+		width:      pty.Window.Width,
+		height:     pty.Window.Height,
+		txtStyle:   txtStyle,
+		titleStyle: titleStyle,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
 
-// Just a generic tea.Model to demo terminal information of ssh.
-type model struct {
-	term      string
-	width     int
-	height    int
-	txtStyle  lipgloss.Style
-	quitStyle lipgloss.Style
+type State struct {
+	term       string
+	width      int
+	height     int
+	txtStyle   lipgloss.Style
+	titleStyle lipgloss.Style
 }
 
-func (m model) Init() tea.Cmd {
+func (m State) Init() tea.Cmd {
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
@@ -120,7 +114,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
-	s := fmt.Sprintf("Your term is %s\nYour window size is %dx%d", m.term, m.width, m.height)
-	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.txtStyle.Render(s)+"\n\n"+m.quitStyle.Render("Press 'q' to quit\n"))
+func BasicPage(m State, title string, body string) string {
+	titleView := m.titleStyle.Render(title)
+	styledTitle := lipgloss.Place(m.width, lipgloss.Height(titleView), lipgloss.Left, lipgloss.Top, m.titleStyle.Render(title), lipgloss.WithWhitespaceBackground(lipgloss.Color("#4c4c4c")))
+	styledBody := lipgloss.Place(m.width, m.height-lipgloss.Height(styledTitle), lipgloss.Center, lipgloss.Center, m.txtStyle.Render(body), lipgloss.WithWhitespaceBackground(lipgloss.Color("#4c4c4c")))
+	return lipgloss.JoinVertical(lipgloss.Center, styledTitle, styledBody)
+}
+
+func (m State) View() string {
+	//	s := fmt.Sprintf("Your term is %s\nYour window size is %dx%d", m.term, m.width, m.height)
+	return BasicPage(m, "CRSPRADLIN.DEV ADMIN", "This is the admin site\npress 'q' to exit")
+	/*lipgloss.
+	 Place(
+			m.width,
+			m.height,
+			lipgloss.Center,
+			lipgloss.Center,
+			m.txtStyle.Render(s)+"\n\n"+m.txtStyle.Render("Press 'q' to quit\n"),
+			lipgloss.WithWhitespaceBackground(lipgloss.Color("#4c4c4c")))
+	*/
 }
