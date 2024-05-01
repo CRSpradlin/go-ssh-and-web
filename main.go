@@ -21,8 +21,10 @@ import (
 )
 
 const (
-	host = "localhost"
-	port = "2323"
+	host   = "localhost"
+	port   = "2323"
+	sitebg = "#333333"
+	sitefg = "#22c55e"
 )
 
 func main() {
@@ -62,20 +64,21 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	renderer := bubbletea.MakeRenderer(s)
 
-	baseStyle := renderer.NewStyle().Background(lipgloss.Color("#4c4c4c"))
+	baseStyle := renderer.NewStyle().Background(lipgloss.Color(sitebg))
 
 	txtStyle := renderer.NewStyle().
-		Foreground(lipgloss.Color("#22c55e")).
+		Foreground(lipgloss.Color(sitefg)).
 		Inherit(baseStyle)
 
 	titleStyle := renderer.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color("#22c55e")).
-		BorderBackground(lipgloss.Color("#4c4c4c")).
-		Foreground(lipgloss.Color("#22c55e")).
-		Margin(1).
-		MarginBackground(lipgloss.Color("#4c4c4c")).
+		BorderForeground(lipgloss.Color(sitefg)).
+		BorderBackground(lipgloss.Color(sitebg)).
+		Foreground(lipgloss.Color(sitefg)).
+		MarginLeft(1).
+		MarginTop(1).
+		//MarginBackground(lipgloss.Color("#4c4c4c")).
 		Inherit(baseStyle)
 
 	m := State{
@@ -116,8 +119,8 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func BasicPage(m State, title string, body string) string {
 	titleView := m.titleStyle.Render(title)
-	styledTitle := lipgloss.Place(m.width, lipgloss.Height(titleView), lipgloss.Left, lipgloss.Top, m.titleStyle.Render(title), lipgloss.WithWhitespaceBackground(lipgloss.Color("#4c4c4c")))
-	styledBody := lipgloss.Place(m.width, m.height-lipgloss.Height(styledTitle), lipgloss.Center, lipgloss.Center, m.txtStyle.Render(body), lipgloss.WithWhitespaceBackground(lipgloss.Color("#4c4c4c")))
+	styledTitle := lipgloss.Place(m.width, lipgloss.Height(titleView), lipgloss.Left, lipgloss.Top, m.titleStyle.Render(title), lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)), lipgloss.WithWhitespaceForeground(lipgloss.Color(sitebg)))
+	styledBody := lipgloss.Place(m.width, m.height-lipgloss.Height(styledTitle), lipgloss.Center, lipgloss.Center, m.txtStyle.Render(body), lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)))
 	return lipgloss.JoinVertical(lipgloss.Center, styledTitle, styledBody)
 }
 
