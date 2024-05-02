@@ -119,8 +119,26 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func BasicPage(m State, title string, body string) string {
 	titleView := m.titleStyle.Render(title)
-	styledTitle := lipgloss.Place(m.width, lipgloss.Height(titleView), lipgloss.Left, lipgloss.Top, m.titleStyle.Render(title), lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)), lipgloss.WithWhitespaceForeground(lipgloss.Color(sitebg)))
-	styledBody := lipgloss.Place(m.width, m.height-lipgloss.Height(styledTitle), lipgloss.Center, lipgloss.Center, m.txtStyle.Render(body), lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)))
+
+	styledTitle := lipgloss.Place(
+		m.width,
+		lipgloss.Height(titleView),
+		lipgloss.Left,
+		lipgloss.Top,
+		m.titleStyle.Render(title),
+		lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)),
+		lipgloss.WithWhitespaceForeground(lipgloss.Color(sitebg)),
+	)
+
+	styledBody := lipgloss.Place(
+		m.width,
+		m.height-lipgloss.Height(styledTitle),
+		lipgloss.Center,
+		lipgloss.Center,
+		m.txtStyle.Render(body),
+		lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)),
+	)
+
 	return lipgloss.JoinVertical(lipgloss.Center, styledTitle, styledBody)
 }
 
