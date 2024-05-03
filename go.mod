@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/charmbracelet/ssh v0.0.0-20240401141849-854cddfa2917
 	github.com/charmbracelet/wish v1.4.0
+	github.com/mattn/go-sqlite3 v1.14.22
 )
 
 require (

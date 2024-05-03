@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
+
 	//	"fmt"
 	"net"
 	"os"
@@ -18,18 +22,51 @@ import (
 	"github.com/charmbracelet/wish/activeterm"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
+
+	"html/template"
+	"net/http"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
-	host   = "localhost"
-	port   = "2323"
-	sitebg = "#333333"
-	sitefg = "#22c55e"
+	host    = "localhost"
+	sshPort = "2323"
+	webPort = "3000"
+	sitebg  = "#222222"
+	sitefg  = "#22c55e"
 )
 
+var db *sql.DB
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
+
+	var err error // error is scoped locally so that "=" can be used in the following line instead of ":=" which would overrride global "db"
+	db, err = sql.Open("sqlite3", "./db.sqlite")
+	checkErr(err)
+	defer db.Close()
+
+	dbInit := `
+		create table if not exists addresses (
+			id integer not null primary key,
+			ip text not null,
+			dtm date
+		);
+	`
+	_, err = db.Exec(dbInit)
+	checkErr(err)
+
+	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/serverstatus", serverstatusHandler)
+
 	s, err := wish.NewServer(
-		wish.WithAddress(net.JoinHostPort(host, port)),
+		wish.WithAddress(net.JoinHostPort(host, sshPort)),
 		wish.WithMiddleware(
 			bubbletea.Middleware(teaHandler),
 			activeterm.Middleware(), // Bubble Tea apps usually require a PTY.
@@ -42,21 +79,36 @@ func main() {
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	log.Info("Starting SSH server", "host", host, "port", port)
+
+	log.Info("Starting SSH Server", "host", host, "port", sshPort)
 	go func() {
 		if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-			log.Error("Could not start server", "error", err)
+			log.Error("Could not start ssh server", "error", err)
+			done <- nil
+		}
+	}()
+
+	log.Info("Starting Web Server", "host", host, "port", webPort)
+	go func() {
+		if err = http.ListenAndServe(":"+webPort, nil); err != nil {
+			log.Error("Could not start web server", "error", err)
 			done <- nil
 		}
 	}()
 
 	<-done
-	log.Info("Stopping SSH server")
+	log.Info("Stopping Servers")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() { cancel() }()
 	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
 		log.Error("Could not stop server", "error", err)
 	}
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("New Web User Routed", "user", r.RemoteAddr, "loc", r.URL)
+	tmpl := template.Must(template.ParseFiles("template.html"))
+	tmpl.Execute(w, nil)
 }
 
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
