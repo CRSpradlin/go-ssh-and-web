@@ -111,6 +111,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
+func serverstatusHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("User requests serverstatus", "user", r.RemoteAddr)
+	fmt.Fprint(w, "")
+}
+
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	pty, _, _ := s.Pty()
 
@@ -139,8 +144,13 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		height:     pty.Window.Height,
 		txtStyle:   txtStyle,
 		titleStyle: titleStyle,
+		remoteAddr: strings.Split(s.RemoteAddr().String(), ":")[0],
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
+}
+
+func pauseServiceForIp(ip string) {
+	log.Info("Stopped service for " + ip)
 }
 
 type State struct {
@@ -149,6 +159,7 @@ type State struct {
 	height     int
 	txtStyle   lipgloss.Style
 	titleStyle lipgloss.Style
+	remoteAddr string
 }
 
 func (m State) Init() tea.Cmd {
@@ -164,6 +175,9 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "r":
+			pauseServiceForIp(m.remoteAddr)
+			return m, nil
 		}
 	}
 	return m, nil
@@ -195,15 +209,5 @@ func BasicPage(m State, title string, body string) string {
 }
 
 func (m State) View() string {
-	//	s := fmt.Sprintf("Your term is %s\nYour window size is %dx%d", m.term, m.width, m.height)
-	return BasicPage(m, "CRSPRADLIN.DEV ADMIN", "This is the admin site\npress 'q' to exit")
-	/*lipgloss.
-	 Place(
-			m.width,
-			m.height,
-			lipgloss.Center,
-			lipgloss.Center,
-			m.txtStyle.Render(s)+"\n\n"+m.txtStyle.Render("Press 'q' to quit\n"),
-			lipgloss.WithWhitespaceBackground(lipgloss.Color("#4c4c4c")))
-	*/
+	return BasicPage(m, "CRSPRADLIN.DEV ADMIN", "This is the admin site\npress 'r' to restart the site\npress 'q' to exit")
 }
