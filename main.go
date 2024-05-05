@@ -56,7 +56,7 @@ func main() {
 		create table if not exists addresses (
 			id integer not null primary key,
 			ip text not null,
-			dtm date
+			dtm datetime
 		);
 	`
 	_, err = db.Exec(dbInit)
@@ -113,7 +113,21 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 func serverstatusHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("User requests serverstatus", "user", r.RemoteAddr)
-	fmt.Fprint(w, "")
+
+	reqIp := strings.Split(r.RemoteAddr, ":")[0]
+	var respIp string
+
+	err := db.QueryRow("select ip from addresses where ip=? and dtm>datetime('now', 'localtime')", reqIp).Scan(&respIp)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Fatal(err)
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		fmt.Fprint(w, "Server is Running!")
+	} else {
+		fmt.Fprint(w, "Server has been Stopped!")
+	}
 }
 
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
@@ -150,6 +164,18 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 }
 
 func pauseServiceForIp(ip string) {
+	tx, err := db.Begin()
+	checkErr(err)
+	stmt, err := tx.Prepare("insert into addresses(ip, dtm) values(?, datetime('now', 'localtime','+30 second'))")
+	checkErr(err)
+	defer stmt.Close()
+
+	_, err = stmt.Exec(ip)
+	checkErr(err)
+
+	err = tx.Commit()
+	checkErr(err)
+
 	log.Info("Stopped service for " + ip)
 }
 
