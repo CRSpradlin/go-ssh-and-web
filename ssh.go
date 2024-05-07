@@ -36,18 +36,18 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	renderer := bubbletea.MakeRenderer(s)
 
-	baseStyle := renderer.NewStyle().Background(lipgloss.Color(sitebg))
+	baseStyle := renderer.NewStyle().Background(lipgloss.Color(sshbg))
 
 	txtStyle := renderer.NewStyle().
-		Foreground(lipgloss.Color(sitefg)).
+		Foreground(lipgloss.Color(sshfg)).
 		Inherit(baseStyle)
 
 	titleStyle := renderer.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.DoubleBorder()).
-		BorderForeground(lipgloss.Color(sitefg)).
-		BorderBackground(lipgloss.Color(sitebg)).
-		Foreground(lipgloss.Color(sitefg)).
+		BorderForeground(lipgloss.Color(sshfg)).
+		BorderBackground(lipgloss.Color(sshbg)).
+		Foreground(lipgloss.Color(sshfg)).
 		MarginLeft(1).
 		MarginTop(1).
 		//MarginBackground(lipgloss.Color("#4c4c4c")).
@@ -119,8 +119,8 @@ func BasicPage(m State, title string, body string) string {
 		lipgloss.Left,
 		lipgloss.Top,
 		m.titleStyle.Render(title),
-		lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color(sitebg)),
+		lipgloss.WithWhitespaceBackground(lipgloss.Color(sshbg)),
+		lipgloss.WithWhitespaceForeground(lipgloss.Color(sshbg)),
 	)
 
 	styledBody := lipgloss.Place(
@@ -129,7 +129,7 @@ func BasicPage(m State, title string, body string) string {
 		lipgloss.Center,
 		lipgloss.Center,
 		m.txtStyle.Render(body),
-		lipgloss.WithWhitespaceBackground(lipgloss.Color(sitebg)),
+		lipgloss.WithWhitespaceBackground(lipgloss.Color(sshbg)),
 	)
 
 	return lipgloss.JoinVertical(lipgloss.Center, styledTitle, styledBody)

@@ -19,8 +19,8 @@ const (
 	host    = "localhost"
 	sshPort = "2323"
 	webPort = "3000"
-	sitebg  = "#222222"
-	sitefg  = "#22c55e"
+	sshbg  = "#222222"
+	sshfg  = "#22c55e"
 )
 
 var db *sql.DB
