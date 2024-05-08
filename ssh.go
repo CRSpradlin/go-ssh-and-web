@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"net"
 	"strings"
 
@@ -65,10 +66,21 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 }
 
 func pauseServiceForIp(ip string) {
+	var result string = ""
+	db.QueryRow("select ip from addresses where ip=?", ip).Scan(&result)
 	tx, err := db.Begin()
 	checkErr(err)
-	stmt, err := tx.Prepare("insert into addresses(ip, dtm) values(?, datetime('now', 'localtime','+30 second'))")
-	checkErr(err)
+
+	var stmt *sql.Stmt
+	if result == "" {
+
+		stmt, err = tx.Prepare("insert into addresses(ip, dtm) values(?, datetime('now', 'localtime','+30 second'))")
+		checkErr(err)
+
+	} else {
+		stmt, err = tx.Prepare("update addresses set dtm=datetime('now', 'localtime', '+30 second') where ip=?")
+		checkErr(err)
+	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(ip)
