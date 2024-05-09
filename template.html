@@ -9,6 +9,6 @@
 </head>
   <body class="w-full h-full flex bg-indigo-200 text-indigo-950">
     <span>Hello World!</span>
-    <span hx-get="/serverstatus" hx-target="this" hx-trigger="load" hx-swap="innerHTML">No Server Data</span>
+    <span hx-get="/serverstatus" hx-target="this" hx-trigger="every 1s" hx-swap="innerHTML">No Server Data</span>
   </body>
 </html>
