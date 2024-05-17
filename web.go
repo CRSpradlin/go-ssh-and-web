@@ -38,9 +38,12 @@ func serverstatusHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	tmpl := template.Must(template.ParseFiles("response.html"))
+
 	if errors.Is(err, sql.ErrNoRows) {
 		fmt.Fprint(w, "Server is Running!")
 	} else {
-		fmt.Fprint(w, "Server has been Stopped!")
+		// fmt.Fprint(w, "Server has been Stopped!")
+		tmpl.ExecuteTemplate(w, "popup", nil)
 	}
 }
