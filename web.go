@@ -14,6 +14,9 @@ import (
 )
 
 func runWebServer() error {
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/serverstatus", serverstatusHandler)
 
@@ -41,7 +44,7 @@ func serverstatusHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("response.html"))
 
 	if errors.Is(err, sql.ErrNoRows) {
-		fmt.Fprint(w, "Server is Running!")
+		fmt.Fprint(w, "")
 	} else {
 		// fmt.Fprint(w, "Server has been Stopped!")
 		tmpl.ExecuteTemplate(w, "popup", nil)
