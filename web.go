@@ -20,7 +20,7 @@ func runWebServer() error {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/serverstatus", serverstatusHandler)
 
-	return http.ListenAndServe(":3000", nil)
+	return http.ListenAndServe(":" + webPort, nil)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
