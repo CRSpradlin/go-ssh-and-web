@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	host    = "localhost"
+	host    = "0.0.0.0"
 	sshPort = "2323"
 	webPort = "3000"
 	sshbg   = "#222222"
