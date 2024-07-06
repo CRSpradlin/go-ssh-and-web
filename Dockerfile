@@ -14,5 +14,4 @@ RUN go build -v -o /usr/local/bin/app ./...
 
 EXPOSE 2323 3000
 
-
-CMD ["app"]
+ENTRYPOINT [ "app" ]
