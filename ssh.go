@@ -37,9 +37,11 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	renderer := bubbletea.MakeRenderer(s)
 
+	outerStyle := renderer.NewStyle()//.Background(lipgloss.Color(sshbg))
+
 	baseStyle := renderer.NewStyle().
-		Background(lipgloss.Color(sshbg)).
-		Foreground(lipgloss.Color(sshfg))
+		Foreground(lipgloss.Color(sshfg)).
+		Inherit(outerStyle)
 
 	txtStyle := renderer.NewStyle().
 		Inherit(baseStyle)
@@ -47,7 +49,7 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 	titleStyle := renderer.NewStyle().
 		BorderStyle(lipgloss.DoubleBorder()).
 		BorderForeground(lipgloss.Color(sshfg)).
-		BorderBackground(lipgloss.Color(sshbg)).
+		//BorderBackground(lipgloss.Color(sshbg)).
 		BorderBottom(true).
 		MarginLeft(1).
 		MarginTop(1).
@@ -57,6 +59,7 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 		term:       pty.Term,
 		width:      pty.Window.Width,
 		height:     pty.Window.Height,
+		outerStyle: outerStyle,
 		txtStyle:   txtStyle,
 		titleStyle: titleStyle,
 		remoteAddr: strings.Split(s.RemoteAddr().String(), ":")[0],
@@ -95,6 +98,7 @@ type State struct {
 	term       string
 	width      int
 	height     int
+	outerStyle lipgloss.Style
 	txtStyle   lipgloss.Style
 	titleStyle lipgloss.Style
 	remoteAddr string
@@ -130,8 +134,8 @@ func BasicPage(m State, title string, body string) string {
 		lipgloss.Left,
 		lipgloss.Top,
 		m.titleStyle.Render(title),
-		lipgloss.WithWhitespaceBackground(lipgloss.Color(sshbg)),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color(sshbg)),
+		//lipgloss.WithWhitespaceBackground(lipgloss.Color(sshbg)),
+		//lipgloss.WithWhitespaceForeground(lipgloss.Color(sshbg)),
 	)
 
 	styledBody := lipgloss.Place(
@@ -140,11 +144,17 @@ func BasicPage(m State, title string, body string) string {
 		lipgloss.Center,
 		lipgloss.Center,
 		m.txtStyle.Render(body),
-		lipgloss.WithWhitespaceBackground(lipgloss.Color(sshbg)),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color(sshbg)),
+		//lipgloss.WithWhitespaceBackground(lipgloss.Color(sshbg)),
+		//lipgloss.WithWhitespaceForeground(lipgloss.Color(sshbg)),
 	)
 
-	return lipgloss.JoinVertical(lipgloss.Center, styledTitle, styledBody)
+	return m.outerStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Center, 
+			styledTitle, 
+			styledBody,
+		),
+	)
 }
 
 func (m State) View() string {
