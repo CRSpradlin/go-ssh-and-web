@@ -20,7 +20,7 @@ func runWebServer() error {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/serverstatus", serverstatusHandler)
 
-	return http.ListenAndServe(":" + webPort, nil)
+	return http.ListenAndServe(":"+webPort, nil)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,9 +30,20 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func serverstatusHandler(w http.ResponseWriter, r *http.Request) {
-	log.Info("User requests serverstatus", "user", r.RemoteAddr)
 
-	reqIp := strings.Split(r.RemoteAddr, ":")[0]
+	headerKeys := []string{}
+	for key := range r.Header {
+		headerKeys = append(headerKeys, key)
+	}
+
+	reqIp := r.Header.Get("X-Forwarded-For")
+
+	if reqIp == "" {
+		reqIp = strings.Split(r.RemoteAddr, ":")[0]
+	}
+
+	log.Info("User requests serverstatus", "user", r.RemoteAddr, "headers", headerKeys)
+
 	var respIp string
 
 	err := db.QueryRow("select ip from addresses where ip=? and dtm>datetime('now', 'localtime')", reqIp).Scan(&respIp)
