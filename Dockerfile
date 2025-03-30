@@ -11,6 +11,6 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /usr/local/bin/app ./...
 
-EXPOSE 2323 3000
+EXPOSE 2525 8080
 
 ENTRYPOINT [ "app" ]

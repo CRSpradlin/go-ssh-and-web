@@ -17,10 +17,10 @@ import (
 
 const (
 	host    = "0.0.0.0"
-	sshPort = "2323"
-	webPort = "3000"
+	sshPort = "2525"
+	webPort = "8080"
 	//sshbg   = "235"
-	sshfg   = "105"
+	sshfg = "105"
 )
 
 var db *sql.DB

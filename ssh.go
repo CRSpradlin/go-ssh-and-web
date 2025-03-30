@@ -37,7 +37,7 @@ func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 
 	renderer := bubbletea.MakeRenderer(s)
 
-	outerStyle := renderer.NewStyle()//.Background(lipgloss.Color(sshbg))
+	outerStyle := renderer.NewStyle() //.Background(lipgloss.Color(sshbg))
 
 	baseStyle := renderer.NewStyle().
 		Foreground(lipgloss.Color(sshfg)).
@@ -150,8 +150,8 @@ func BasicPage(m State, title string, body string) string {
 
 	return m.outerStyle.Render(
 		lipgloss.JoinVertical(
-			lipgloss.Center, 
-			styledTitle, 
+			lipgloss.Center,
+			styledTitle,
 			styledBody,
 		),
 	)

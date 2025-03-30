@@ -31,19 +31,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 func serverstatusHandler(w http.ResponseWriter, r *http.Request) {
 
-	headerKeys := []string{}
-	for key := range r.Header {
-		headerKeys = append(headerKeys, key)
-	}
+	reqIp := strings.Split(r.RemoteAddr, ":")[0]
 
-	reqIp := r.Header.Get("X-Forwarded-For")
-
-	if reqIp == "" {
-		reqIp = strings.Split(r.RemoteAddr, ":")[0]
-	}
-
-	log.Info("User requests serverstatus", "user", r.RemoteAddr, "headers", headerKeys)
-
+	log.Info("User requests serverstatus", "user", reqIp)
 	var respIp string
 
 	err := db.QueryRow("select ip from addresses where ip=? and dtm>datetime('now', 'localtime')", reqIp).Scan(&respIp)
